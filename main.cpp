@@ -13,7 +13,7 @@ struct BiTree
 // };
 enum Dir { fall_left, parent };
 template < class T >
-std::pair< size_t, BiTree< T >* > fall_left(BiTree< T >* root)
+std::pair< size_t, BiTree< T >* > fallLeft(BiTree< T >* root)
 {
   size_t path = 0;
   while (root->lt) {
@@ -46,11 +46,11 @@ template < class T >
 std::tuple< Dir, size_t, BiTree< T >* > nextStruct(BiTree< T >* root)
 {
   if (root->rt) {
-    auto result = fall_left(root->rt);
+    auto result = fallLeft(root->rt);
     return {Dir::fall_left, result.first, result.second};
   }
   auto result = parent(root);
-  return {Dir::parent, result.first.result.second};
+  return {Dir::parent, result.first, result.second};
 }
 
 template < class T >
@@ -70,13 +70,13 @@ std::tuple< BiTree< T >*, BiTree< T >*, bool > isEqualStructStart(BiTree< T >* l
 template < class T >
 bool includedStruct(BiTree< T >* lhs, BiTree< T >* pattern)
 {
-  BiTree< T >* lhs = fallLeft(lhs).second;
-  while (lhs) {
+  BiTree< T >* curr = fallLeft(lhs).second;
+  while (curr) {
     auto result = isEqualStructStart(lhs, fallLeft(pattern).second));
     if (!std::get< 1 >(result) && std::get< 2 >(result)) {
       return true;
     }
-    lhs = nextStruct(lhs).second;
+    curr = nextStruct(curr).second;
   }
   return false;
 }
@@ -99,7 +99,7 @@ inclusion(BiTree< T >* lhs,             // здесь ищем вхождени�
           BiTree< T >* pattern          // образец структуры
 )
 {
-  BiTree< T >* lhs_curr = fall_left(lhs).second;
+  BiTree< T >* lhs_curr = fallLeft(lhs).second;
   while (lhs_curr) {
     auto result = isEqualStructStart(lhs_curr, fallLeft(pattern).second));
     if (!std::get< 1 >(result) && std::get< 2 >(result)) {
@@ -145,11 +145,39 @@ struct InclusionIt
 {
   std::pair< BiTree< T >*, BiTree< T >* > incl;
 };
-template < class T >
-InclusionIt< T > begin(BiTree< T >* lhs, BiTree< T >* pattern);
+
 
 template < class T >
-InclusionIt< T > next(InclusionIt< T > curr, BiTree< T >* pattern);
+InclusionIt< T > begin(BiTree< T >* lhs, BiTree< T >* pattern)
+{
+  InclusionIt< T > it;
+  it.incl = inclusion(lhs, pattern);
+  return it;
+}
 
 template < class T >
-bool hasNext(InclusionIt< T > curr, BiTree< T >* pattern);
+InclusionIt< T > next(InclusionIt< T > curr, BiTree< T >* pattern)
+{
+  if (!curr.incl.first || !curr.incl.second) {
+    curr.incl = {nullptr, nullptr};
+    return curr;
+  }
+  BiTree< T >* next_start = nextStruct(curr.incl.second).second;
+  if (!next_start) {
+    curr.incl = {nullptr, nullptr};
+    return curr;
+  }
+  curr.incl = inclusion(next_start, pattern);
+  return curr;
+}
+
+template < class T >
+bool hasNext(InclusionIt< T > curr, BiTree< T >* pattern)
+{
+  return curr.incl.first != nullptr;
+
+ 
+
+  
+
+    
