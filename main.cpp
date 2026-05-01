@@ -175,8 +175,7 @@ template < class T >
 bool hasNext(InclusionIt< T > curr, BiTree< T >* pattern)
 {
   return curr.incl.first != nullptr;
-
- 
+}
 
   
 
